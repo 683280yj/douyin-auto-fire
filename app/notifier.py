@@ -37,6 +37,18 @@ async def send_dingtalk_notification(
     await asyncio.to_thread(_post_json, _signed_webhook_url(webhook, secret), payload)
 
 
+async def send_bark_notification(
+    url: str,
+    task_id: str,
+    dry_run: bool,
+    results: list[TargetResult],
+    screenshots: list[Path],
+) -> None:
+    title, markdown = build_dingtalk_markdown(task_id, dry_run, results, screenshots)
+    payload = {"title": title, "body": markdown, "group": "抖音续火花"}
+    await asyncio.to_thread(_post_bark, url, payload)
+
+
 def build_dingtalk_markdown(
     task_id: str,
     dry_run: bool,
@@ -120,6 +132,20 @@ def _post_json(url: str, payload: dict) -> None:
     result = json.loads(body)
     if result.get("errcode") != 0:
         raise RuntimeError(f"钉钉机器人返回错误: {result.get('errmsg', body)}")
+
+
+def _post_bark(url: str, payload: dict) -> None:
+    request = Request(
+        url,
+        data=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
+        headers={"Content-Type": "application/json; charset=utf-8"},
+        method="POST",
+    )
+    with urlopen(request, timeout=15) as response:
+        body = response.read().decode("utf-8")
+    result = json.loads(body)
+    if result.get("code") != 200:
+        raise RuntimeError(f"Bark 返回错误: {result.get('message', body)}")
 
 
 def _github_run_url() -> str | None:

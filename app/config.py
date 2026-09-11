@@ -21,6 +21,7 @@ def load_settings(env_file: str | Path | None = None) -> Settings:
     default_state = Path("storage-state.json")
     dingtalk_webhook = _optional_env("DINGTALK_WEBHOOK")
     dingtalk_secret = _optional_env("DINGTALK_SECRET")
+    bark_url = _optional_env("BARK_PUSH") or _optional_env("BARK_URL")
     if bool(dingtalk_webhook) != bool(dingtalk_secret):
         raise ConfigError("DINGTALK_WEBHOOK 和 DINGTALK_SECRET 必须同时配置")
     return Settings(
@@ -33,6 +34,7 @@ def load_settings(env_file: str | Path | None = None) -> Settings:
         trace=_parse_bool(os.getenv("TRACE", "true"), "TRACE"),
         dingtalk_webhook=dingtalk_webhook,
         dingtalk_secret=dingtalk_secret,
+        bark_url=bark_url,
     )
 
 

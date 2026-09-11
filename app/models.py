@@ -56,6 +56,7 @@ class Settings:
     trace: bool
     dingtalk_webhook: str | None = None
     dingtalk_secret: str | None = None
+    bark_url: str | None = None
 
 
 @dataclass(frozen=True)
