@@ -38,6 +38,37 @@ jobs:
       - name: Write protected configuration
         shell: bash
         run: printf '%s' "$DOUYIN_CONFIG" > config.json
+      - name: Add firework targets
+        shell: bash
+        run: |
+          python - <<'PY'
+          import copy
+          import json
+          from pathlib import Path
+
+          path = Path("config.json")
+          config = json.loads(path.read_text(encoding="utf-8"))
+          names = ["章", "小树莓莓"]
+
+          if isinstance(config.get("friends"), list):
+              for name in names:
+                  if name not in config["friends"]:
+                      config["friends"].append(name)
+          elif isinstance(config.get("targets"), list) and config["targets"]:
+              template_messages = copy.deepcopy(config["targets"][0]["messages"])
+              existing = {
+                  target.get("name")
+                  for target in config["targets"]
+                  if isinstance(target, dict)
+              }
+              for name in names:
+                  if name not in existing:
+                      config["targets"].append({"name": name, "messages": copy.deepcopy(template_messages)})
+          else:
+              raise SystemExit("配置中没有可扩展的 friends 或 targets")
+
+          path.write_text(json.dumps(config, ensure_ascii=False, indent=2), encoding="utf-8")
+          PY
       - name: Write multi-account configuration
         shell: bash
         env:
